@@ -16,7 +16,7 @@ class NaiveSampler:
         
         return self.model.prior.sampler()
     
-    def proposal(self, theta, theta_range='free', box_size=.1):
+    def proposal(self, theta, theta_range='free', box_size=.1,constraint=None):
         '''
         return theta, log p(theta)
         
@@ -27,21 +27,37 @@ class NaiveSampler:
         in most cases, theta can move freely, yet in some other cases, 
         theta has some restrictions: for example, must be positive, etc. 
         
-        I have only implemented three cases, 'free', 'positive', or a list of 
-        intervals that defines the range of theta. 
+        I have only implemented the following cases, 
+            - 'free': the parameter can go anywhere
+            - 'positive': the parameters must be positive
+            - 'constraint': 
+                it needs to be supplemented with an input contraint,
+                which is a function of theta, that returns true or false. 
+                sample as in the 'free', 
+                but if constraint(theta) = False,
+                return -np.inf
+            - 'box':
+                unimplemented yet
+        
+        Possible bugs: 
+            - the `contraint` mode might create a (hopefully small) bias.     
         '''
         
         t1,t2 = theta
         
-        if theta_range=='free': 
+        if theta_range in ['free','constraint']: 
             t1rg = (t1-box_size,t1+box_size)
             t2rg = (t2-box_size,t2+box_size)
         elif theta_range=='positive':
             t1rg = (max(t1-box_size,0),t1+box_size)
             t2rg = (max(t2-box_size,0),t2+box_size)
-        else:
-            print("Error unimplemented")
+        elif theta_range=='box':
+            print('unimplemented')
             assert(False)
+        else:
+            print('unimplemented')
+            assert(False)
+            
         l1 = t1rg[1] - t1rg[0]
         l2 = t2rg[1] - t2rg[0]
         a = l1*l2
@@ -49,6 +65,10 @@ class NaiveSampler:
         
         t1 = np.random.uniform(*t1rg)
         t2 = np.random.uniform(*t2rg)
+        
+        if theta_range == 'constraint' and not constraint(theta):
+            log_p = -np.inf
+        
         return (t1,t2), log_p
     
     def simulation(self,n=10000,theta_range='free',box_size=.1):
