@@ -82,7 +82,7 @@ class NaiveSampler:
         for i in tqdm(range(n+self.burn_in), desc='sampling posterior'):
             theta_,log_t = self.proposal(theta,theta_range=theta_range,
                                          constraint=constraint,box_size=box_size)
-            if not log_t == - np.inf:
+            if constraint(theta_):
                 log_posterior = self.model.log_posterior(theta_)\
                     - self.model.log_posterior(theta)
                 log_p = log_t + log_posterior
