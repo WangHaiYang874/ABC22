@@ -16,7 +16,7 @@ class NaiveSampler:
         
         return self.model.prior.sampler()
     
-    def proposal(self, theta, theta_range='free', box_size=.1,constraint=None):
+    def proposal(self, theta, theta_range='free', box_size=.1, constraint=None):
         '''
         return theta, log p(theta)
         
@@ -43,45 +43,54 @@ class NaiveSampler:
             - the `contraint` mode might create a (hopefully small) bias.     
         '''
         
-        t1,t2 = theta
+        d = len(theta)
         
         if theta_range in ['free','constraint']: 
-            t1rg = (t1-box_size,t1+box_size)
-            t2rg = (t2-box_size,t2+box_size)
+            Theta_range = np.array([(i-box_size,i+box_size) for i in theta]).T
         elif theta_range=='positive':
-            t1rg = (max(t1-box_size,0),t1+box_size)
-            t2rg = (max(t2-box_size,0),t2+box_size)
+            Theta_range = np.array([(max(i-box_size,0),i+box_size) for i in theta]).T
         elif theta_range=='box':
             print('unimplemented')
             assert(False)
         else:
             print('unimplemented')
             assert(False)
-            
-        l1 = t1rg[1] - t1rg[0]
-        l2 = t2rg[1] - t2rg[0]
-        a = l1*l2
-        log_p = - np.log(a)
         
-        t1 = np.random.uniform(*t1rg)
-        t2 = np.random.uniform(*t2rg)
+        a1 = np.prod(Theta_range[:,1] - Theta_range[:,0])
+        log_p = - np.log(a1)
+        new_theta = np.random.uniform(*Theta_range)
         
-        if theta_range == 'constraint' and not constraint(theta):
+        if theta_range in ['free','constraint']: 
+            log_p += d*np.log(2*box_size)
+        elif theta_range == 'positive':
+            log_p += np.prod([i + box_size - max(i-box_size,0) for i in new_theta])
+        elif theta_range == 'box':
+            print('unimplemented')
+            assert(False)
+        else:
+            print('unimplemented')
+            assert(False)
+        
+        if theta_range == 'constraint' and not constraint(new_theta):
             log_p = -np.inf
         
-        return (t1,t2), log_p
+        return new_theta, log_p
     
-    def simulation(self,n=10000,theta_range='free',box_size=.1):
+    def simulation(self,n=10000,theta_range='free',box_size=.1,constraint=None):
         theta = self.get_init_position()
         samples = [theta]
         for i in tqdm(range(n+self.burn_in), desc='sampling posterior'):
-            theta_,log_t = self.proposal(theta)
-            log_posterior = self.model.log_posterior(theta_)\
-                - self.model.log_posterior(theta)
-            log_p = log_t + log_posterior
-            if log_p >= 0:
-                theta = theta_
-            if log_p <= np.log(np.random.uniform()):
+            theta_,log_t = self.proposal(theta,theta_range=theta_range,
+                                         constraint=constraint,box_size=box_size)
+            if not log_t == - np.inf:
+                log_posterior = self.model.log_posterior(theta_)\
+                    - self.model.log_posterior(theta)
+                log_p = log_t + log_posterior
+                if log_p >= 0:
+                    theta = theta_
+                if log_p <= np.log(np.random.uniform()):
+                    theta = theta_
+            else:
                 theta = theta_
             samples.append(theta)
         return np.array(samples[-n:])
