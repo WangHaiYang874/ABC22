@@ -1,7 +1,8 @@
 import Prior
 import numpy as np
 from matplotlib import pyplot as plt
-from joblib import Parallel
+from joblib import Parallel, delayed
+from itertools import product
 
 from tqdm import tqdm
 
@@ -51,7 +52,34 @@ class BayersianModel:
     def posterior(self, theta):
         return np.exp(self.log_likely(theta))
     
-    def posterior_heatmap(self,s=2,n=(400,400), n_cpus=None):
+    
+    def MPE(self,theta_range=None,n=100, njobs=None):
+        
+        if theta_range is None:
+            theta_range = self.prior.theta_range
+        
+        if isinstance(n,int):
+            n = np.tile(n,theta_range.shape[1])
+        else:
+            assert(len(n)==theta_range.shape[1])
+        
+        compute = lambda theta: (theta,self.log_likelyhood(theta,self.observation))
+        
+        if njobs is None:
+            likelyhoods = [ (theta,self.log_likelyhood(theta,self.observation))
+                        for theta in tqdm(list(product(
+                            *[np.linspace(tr[0],tr[1],nn) for tr,nn in zip(theta_range.T,n)])))]
+        else:
+            likelyhoods = Parallel(n_jobs=njobs)(
+                delayed(compute)(theta) for theta in product(
+                        *[np.linspace(tr[0],tr[1],nn) for tr,nn in zip(theta_range.T,n)]
+                    ))
+            
+        return likelyhoods
+            
+        
+    
+    def posterior_heatmap(self,s=2,n=(400,400), true_theta=None):
         '''
         this is only applicable if prior.dim == 2 
         n_cpus is for parallel computing
@@ -77,5 +105,13 @@ class BayersianModel:
         ax.set_title('the pdf for posterior')
         ax.scatter(Theta[:,0],Theta[:,1],c=P,s=s,cmap='jet')
         self.P = P
+        
+        max_posteror_estimate = np.argmax(P)
+        t1,t2 = Theta[max_posteror_estimate]
+        ax.scatter([t1,],[t2,],c='black')
+        
+        if true_theta is not None:
+            t1,t2=true_theta
+            ax.scatter([t1,],[t2,],c='white')
         
         return ax
