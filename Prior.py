@@ -24,7 +24,7 @@ class Prior:
         if theta_range is None:
             self.theta_range = [(-1,1) for _ in range(self.dim)]
         else:
-            assert(len(theta_range)==self.dim and all([len(rg) == 2 for rg in theta_range]))
+            assert(theta_range.shape == (2,self.dim))
             self.theta_range = theta_range
             
     def proba(self,theta):

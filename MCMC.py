@@ -9,14 +9,55 @@ class NaiveSampler:
         self.model = model
         self.burn_in = burn_in
         
-    def get_init_position(self):
+    def get_init_position(self, constraint=None):
         '''
         returns a random initial position for the MCMC
         '''
         
-        return self.model.prior.sampler()
+        if constraint is None: 
+            return self.model.prior.sampler()
+        else:
+            theta = self.model.prior.sampler()
+            while not constraint(theta):
+                theta = self.model.prior.sampler()
+            return theta
+        
+    def get_box(self,theta,box_size,constraints=None):
+        
+        box = []
+        volume = 1
+        
+        if constraints is None:
+            for t in theta:
+                lower = t-box_size
+                upper = t+box_size
+                box.append((lower,upper))
+                volume*=(upper-lower)
+        else: 
+            
+            if len(theta) != len(constraints):
+                
+                print('\n---------------\n')
+                print(theta,constraints,sep='\n')
+                print('\n---------------\n')
+                assert(False)
+            
+            for t , constraint in zip(theta,constraints):
+                if constraint == None:
+                    lower = t-box_size
+                    upper = t+box_size
+                else:
+                    a,b = constraint
+                    lower = max(a,t-box_size)
+                    upper = min(b,t+box_size)
+                box.append((lower,upper))
+                volume*=(upper-lower)
+            
+        box = np.array(box).T
+        
+        return box, volume
     
-    def proposal(self, theta, theta_range='free', box_size=.1, constraint=None):
+    def proposal(self, theta, theta_range=None, box_size=.1):
         '''
         return theta, log p(theta)
         
@@ -29,68 +70,56 @@ class NaiveSampler:
         
         I have only implemented the following cases, 
             - 'free': the parameter can go anywhere
-            - 'positive': the parameters must be positive
-            - 'constraint': 
-                it needs to be supplemented with an input contraint,
-                which is a function of theta, that returns true or false. 
-                sample as in the 'free', 
-                but if constraint(theta) = False,
-                return -np.inf
-            - 'box':
-                unimplemented yet
+            - 'box': given a n-d box as the constraint for next parameter
+            - todo 'constraint': give a function that defines a half space.. 
+            - 'positive': simply sample the positive parameters
         
         Possible bugs: 
             - the `contraint` mode might create a (hopefully small) bias.     
         '''
         
-        d = len(theta)
+        if theta_range == 'positive':
+            theta_range = [(0,np.inf) for _ in theta]
+        if theta_range == 'constraint':
+            raise('todo')
         
-        if theta_range in ['free','constraint']: 
-            Theta_range = np.array([(i-box_size,i+box_size) for i in theta]).T
-        elif theta_range=='positive':
-            Theta_range = np.array([(max(i-box_size,0),i+box_size) for i in theta]).T
-        elif theta_range=='box':
-            print('unimplemented')
-            assert(False)
-        else:
-            print('unimplemented')
-            assert(False)
+        box,a = self.get_box(theta,box_size,theta_range)
+        new_theta = np.random.uniform(*box)
         
-        a1 = np.prod(Theta_range[:,1] - Theta_range[:,0])
-        log_p = - np.log(a1)
-        new_theta = np.random.uniform(*Theta_range)
+        _,a_ = self.get_box(new_theta,box_size,theta_range)
         
-        if theta_range in ['free','constraint']: 
-            log_p += d*np.log(2*box_size)
-        elif theta_range == 'positive':
-            log_p += np.prod([i + box_size - max(i-box_size,0) for i in new_theta])
-        elif theta_range == 'box':
-            print('unimplemented')
-            assert(False)
-        else:
-            print('unimplemented')
-            assert(False)
-        
-        if theta_range == 'constraint' and not constraint(new_theta):
-            log_p = -np.inf
-        
-        return new_theta, log_p
+        return new_theta, np.log(a/a_)
     
-    def simulation(self,n=10000,theta_range='free',box_size=.1,constraint=None):
+    
+    def simulation(self,n=10000,theta_range=None,box_size=.1):
+        
         theta = self.get_init_position()
         samples = [theta]
+        
         for i in tqdm(range(n+self.burn_in), desc='sampling posterior'):
+            
             theta_,log_t = self.proposal(theta,theta_range=theta_range,
-                                         constraint=constraint,box_size=box_size)
-            if constraint(theta_):
-                log_posterior = self.model.log_posterior(theta_)\
+                                         box_size=box_size)
+            
+            # if not constraint(theta):
+            #     print('wtf')
+            #     assert(False)
+            # if not constraint(theta_):
+            #     theta_ = theta
+            #     pass
+            
+            log_posterior = self.model.log_posterior(theta_)\
                     - self.model.log_posterior(theta)
-                log_p = log_t + log_posterior
-                if log_p >= 0:
-                    theta = theta_
-                if log_p <= np.log(np.random.uniform()):
-                    theta = theta_
-            else:
+            log_acceptance = log_t + log_posterior
+            
+            if log_acceptance >= 0:
                 theta = theta_
+            if np.log(np.random.uniform()) <= log_acceptance:
+                theta = theta_
+            else:
+                # reject
+                theta = theta
+            
             samples.append(theta)
-        return np.array(samples[-n:])
+            
+        return np.array(samples)
