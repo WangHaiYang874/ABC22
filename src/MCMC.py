@@ -116,9 +116,8 @@ class NaiveSampler:
             if np.log(np.random.uniform()) <= log_acceptance:
                 theta = theta_
             else:
-                # reject
-                theta = theta
-
+                'do nothing'
+                
             samples.append(theta)
 
         return np.array(samples)
