@@ -96,6 +96,8 @@ class NaiveSampler:
         samples = [theta]
         if_accepted = []
         
+        prev_log_posterior = self.model.log_posterior(theta)
+        
         for i in tqdm(range(n+self.burn_in), desc='sampling posterior'):
 
             theta_, log_t = self.proposal(theta, theta_range=theta_range,
@@ -107,9 +109,8 @@ class NaiveSampler:
             # if not constraint(theta_):
             #     theta_ = theta
             #     pass
-
-            log_posterior = self.model.log_posterior(theta_)\
-                - self.model.log_posterior(theta)
+            curr_log_posterior = self.model.log_posterior(theta_)
+            log_posterior = curr_log_posterior - prev_log_posterior
             log_acceptance = log_t + log_posterior
             
             if_accepted.append(
@@ -118,7 +119,8 @@ class NaiveSampler:
                 
                 '''accepted'''
                 theta = theta_
-            else:   
+                prev_log_posterior = curr_log_posterior
+            else:
                 '''rejected'''
             
             samples.append(theta)
