@@ -1,0 +1,16 @@
+name: mcmc
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - emcee
+  - joblib
+  - pandas
+  - jupyter
+  - ca-certificates
+  - certifi
+  - openssl
+  - tqdm
+# prefix: /opt/homebrew/Caskroom/miniforge/base/envs/mcmc

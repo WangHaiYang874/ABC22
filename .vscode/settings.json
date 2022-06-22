@@ -1,3 +1,6 @@
 {
-    "jupyter.jupyterServerType": "local"
+    "jupyter.jupyterServerType": "local",
+    "notebook.cellToolbarVisibility": "hover",
+    "notebook.editorOptionsCustomizations": {
+    }
 }

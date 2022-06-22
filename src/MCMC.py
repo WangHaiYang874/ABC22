@@ -94,7 +94,8 @@ class NaiveSampler:
 
         theta = self.get_init_position()
         samples = [theta]
-
+        if_accepted = []
+        
         for i in tqdm(range(n+self.burn_in), desc='sampling posterior'):
 
             theta_, log_t = self.proposal(theta, theta_range=theta_range,
@@ -110,14 +111,18 @@ class NaiveSampler:
             log_posterior = self.model.log_posterior(theta_)\
                 - self.model.log_posterior(theta)
             log_acceptance = log_t + log_posterior
-
-            if log_acceptance >= 0:
-                theta = theta_
-            if np.log(np.random.uniform()) <= log_acceptance:
-                theta = theta_
-            else:
-                'do nothing'
+            
+            if_accepted.append(
+                log_acceptance >= 0 or (np.log(np.random.uniform()) <= log_acceptance))
+            if if_accepted[-1]:
                 
+                '''accepted'''
+                theta = theta_
+            else:   
+                '''rejected'''
+            
             samples.append(theta)
 
+        print('acceptance rate:', np.sum(if_accepted)/len(if_accepted))
+        
         return np.array(samples)
