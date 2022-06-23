@@ -90,9 +90,12 @@ class NaiveSampler:
 
         return new_theta, np.log(a/a_)
 
-    def simulation(self, n=10000, theta_range=None, box_size=.1):
+    def simulation(self, n=10000, theta_range=None, box_size=.1,init_position=None):
 
-        theta = self.get_init_position()
+        if init_position is None:
+            theta = self.get_init_position()
+        else:
+            theta = init_position
         samples = [theta]
         if_accepted = []
         

@@ -77,7 +77,7 @@ class BayersianModel:
 
         return likelyhoods
 
-    def posterior_heatmap(self, s=2, n=(400, 400), true_theta=None):
+    def posterior_heatmap(self, s=2, n=(200, 200), true_theta=None):
         '''
         this is only applicable if prior.dim == 2 
         n_cpus is for parallel computing
@@ -85,31 +85,30 @@ class BayersianModel:
 
         assert(self.prior.dim == 2)
 
-        Theta1 = np.linspace(*self.prior.theta_range[0], n[0])
-        Theta2 = np.linspace(*self.prior.theta_range[1], n[1])
+        Theta1 = np.linspace(*self.prior.theta_range[:,0], n[0])
+        Theta2 = np.linspace(*self.prior.theta_range[:,1], n[1])
 
-        Theta = np.array([(t1, t2) for t1 in Theta1 for t2 in Theta2])
+        XX,YY = np.meshgrid(Theta1,Theta2)
+        XX = XX.flatten()
+        YY = YY.flatten()
+        XY = list(zip(XX,YY))
 
-        # if n_cpus is None:
-        P = [self.log_posterior(theta)
-             for theta in tqdm(Theta, desc='computing posterior')]
-        # else:
-        #     P = Parallel(n_jobs=n_cpus)(self.log_posterior(theta)
-        #             for theta in tqdm( Theta, desc='computing posterior'))
+        ZZ = np.array([self.log_posterior(theta)
+             for theta in tqdm(XY, desc='computing posterior')])
 
         plt.figure(figsize=(10, 10))
 
         ax = plt.axes()
         ax.set_title('the pdf for posterior')
-        ax.scatter(Theta[:, 0], Theta[:, 1], c=P, s=s, cmap='jet')
-        self.P = P
+        ax.scatter(XX, YY, c=ZZ, s=s, cmap='jet')
+        self.P = np.array([XX,YY,ZZ])
 
-        max_posteror_estimate = np.argmax(P)
-        t1, t2 = Theta[max_posteror_estimate]
-        ax.scatter([t1, ], [t2, ], c='black')
+        mpe_index = np.argmax(ZZ,axis=-1)
+        mpe_theta = (XX[mpe_index],YY[mpe_index])
+        self.mpe_theta = mpe_theta
+        ax.scatter(*mpe_theta, c='black')
 
         if true_theta is not None:
-            t1, t2 = true_theta
-            ax.scatter([t1, ], [t2, ], c='white')
-
+            ax.scatter(*true_theta, c='white')
+            
         return ax
