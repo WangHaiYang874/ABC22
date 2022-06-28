@@ -80,7 +80,7 @@ class ChemicalReactionNetwork:
             t.append(t[-1]+dt)
             r.append(dr)
         
-        # a.s. t[-1] >= T, so we pop out the last terms. 
+        # a.s. t[-1] >= T, so we pop out the last term. 
         
         x = np.array(x[:-1])
         t = np.array(t[:-1])

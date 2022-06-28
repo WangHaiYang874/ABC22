@@ -11,7 +11,7 @@ class BayersianModel:
     '''
     There are a few key terms in bayersian statistics: 
         prior, posterior, likelyhood, evidence, inference. 
-    This class tries to simulate incorporate these terms for
+    This class tries to incorporate these terms for
     the necessary computations for a bayersian inference. 
 
     P(theta|X) = L(theta|X) * pi(theta) / P(X)
