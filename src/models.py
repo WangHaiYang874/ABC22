@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import expon
 
 
+
 class ChemicalReactionNetwork:
     '''
     This models the stochastic network of chemical reactions, 
