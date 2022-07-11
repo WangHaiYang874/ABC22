@@ -209,37 +209,37 @@ class Repressilator(ReactionNetwork):
         ]
         super().__init__(reactions, species, None, model_parameter)
         
-def _propensity(self, theta, X):
-    '''
-    theta = (
-        alpha0  : the leakage transcription rate
-        alpha   : free_transcription rate - leakage transcription rate
-        n       : hill coefficient
-        K       : excluding leakage
-        beta    : protein_translation and degradation rate
-        gamma   : mRNA degradation rate
-    )
-    '''
-    alpha0, alpha, n, K, beta, gamma = theta
-    
-    
-    ret = np.zeros(self.number_of_reactions)
-    # calculating the mRNA transciption propensity 
-    ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
-    
-    # calculating the protein translation propensity
-    ret[3:6] = beta
-    
-    # calculating the protein degradation propensity 
-    ret[6:9] = beta
-    
-    # calculating the mRNA degradation 
-    ret[9:]  = gamma
-    
-    return ret
-    
-def propensity(self, X):
-    return self._propensity(self.model_parameter,X)
+    def _propensity(self, theta, X):
+        '''
+        theta = (
+            alpha0  : the leakage transcription rate
+            alpha   : free_transcription rate - leakage transcription rate
+            n       : hill coefficient
+            K       : excluding leakage
+            beta    : protein_translation and degradation rate
+            gamma   : mRNA degradation rate
+        )
+        '''
+        alpha0, alpha, n, K, beta, gamma = theta
+        
+        
+        ret = np.zeros(self.number_of_reactions)
+        # calculating the mRNA transciption propensity 
+        ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
+        
+        # calculating the protein translation propensity
+        ret[3:6] = beta
+        
+        # calculating the protein degradation propensity 
+        ret[6:9] = beta
+        
+        # calculating the mRNA degradation 
+        ret[9:]  = gamma
+        
+        return ret
+        
+    def propensity(self, X):
+        return self._propensity(self.model_parameter,X)
     
     
 
