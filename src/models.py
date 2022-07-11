@@ -183,64 +183,64 @@ class ChemicalReactionNetwork(ReactionNetwork):
 
         return log_pdf_t + log_pdf_r + log_pdf_final
 
-    class repressilator(ReactionNetwork):
-        '''
-        This is an implementation for the repressilator network in biological system. 
-        See [paper by Warne, et al. on arxiv](https://arxiv.org/abs/2110.14082v2) for
-        description of this network. 
-        '''
+class Repressilator(ReactionNetwork):
+    '''
+    This is an implementation for the repressilator network in biological system. 
+    See [paper by Warne, et al. on arxiv](https://arxiv.org/abs/2110.14082v2) for
+    description of this network. 
+    '''
 
-        def __init__(self, model_parameter):
+    def __init__(self, model_parameter):
 
-            species = 'M1 M2 M3 P1 P2 P3'.split()
-            reactions = [
-                ({},            {'M1':1}), # mRNA transcription
-                ({},            {'M2':1}), 
-                ({},            {'M3':1}),
-                ({'M1':1},      {'M1':1,'P1':1}), # protein translation
-                ({'M2':1},      {'M2':1,'P2':1}),
-                ({'M3':1},      {'M3':1,'P3':1}),
-                ({'P1':0},      {}), # protein degradation
-                ({'P2':0},      {}),
-                ({'P3':0},      {}),
-                ({'M1':0},      {}), # mRNA degradation
-                ({'M2':0},      {}),
-                ({'M3':0},      {}),
-            ]
-            super().__init__(reactions, species, None, model_parameter)
-            
-    def _propensity(self, theta, X):
-        '''
-        theta = (
-            alpha0  : the leakage transcription rate
-            alpha   : free_transcription rate - leakage transcription rate
-            n       : hill coefficient
-            K       : excluding leakage
-            beta    : protein_translation and degradation rate
-            gamma   : mRNA degradation rate
-        )
-        '''
-        alpha0, alpha, n, K, beta, gamma = theta
+        species = 'M1 M2 M3 P1 P2 P3'.split()
+        reactions = [
+            ({},            {'M1':1}), # mRNA transcription
+            ({},            {'M2':1}), 
+            ({},            {'M3':1}),
+            ({'M1':1},      {'M1':1,'P1':1}), # protein translation
+            ({'M2':1},      {'M2':1,'P2':1}),
+            ({'M3':1},      {'M3':1,'P3':1}),
+            ({'P1':0},      {}), # protein degradation
+            ({'P2':0},      {}),
+            ({'P3':0},      {}),
+            ({'M1':0},      {}), # mRNA degradation
+            ({'M2':0},      {}),
+            ({'M3':0},      {}),
+        ]
+        super().__init__(reactions, species, None, model_parameter)
         
-        
-        ret = np.zeros(self.number_of_reactions)
-        # calculating the mRNA transciption propensity 
-        ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
-        
-        # calculating the protein translation propensity
-        ret[3:6] = beta
-        
-        # calculating the protein degradation propensity 
-        ret[6:9] = beta
-        
-        # calculating the mRNA degradation 
-        ret[9:]  = gamma
-        
-        return ret
-        
-    def propensity(self, X):
-        return self._propensity(self.model_parameter,X)
-        
-        
+def _propensity(self, theta, X):
+    '''
+    theta = (
+        alpha0  : the leakage transcription rate
+        alpha   : free_transcription rate - leakage transcription rate
+        n       : hill coefficient
+        K       : excluding leakage
+        beta    : protein_translation and degradation rate
+        gamma   : mRNA degradation rate
+    )
+    '''
+    alpha0, alpha, n, K, beta, gamma = theta
+    
+    
+    ret = np.zeros(self.number_of_reactions)
+    # calculating the mRNA transciption propensity 
+    ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
+    
+    # calculating the protein translation propensity
+    ret[3:6] = beta
+    
+    # calculating the protein degradation propensity 
+    ret[6:9] = beta
+    
+    # calculating the mRNA degradation 
+    ret[9:]  = gamma
+    
+    return ret
+    
+def propensity(self, X):
+    return self._propensity(self.model_parameter,X)
+    
+    
 
         
