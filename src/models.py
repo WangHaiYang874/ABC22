@@ -7,7 +7,7 @@ class ReactionNetwork:
     '''
     This models the stochastic network of chemical reactions, 
 
-    # the paramters
+    # the parameters
     - number of species = N
     - number of reactions = M
     - reactions stochio :has: shape(M,2,N)
@@ -121,6 +121,37 @@ class ReactionNetwork:
         r = np.array(r)
 
         return (x, r, t)
+
+    def get_observation(self,t,x,x_mask,t_mask,noise=None):
+        '''
+        Given the time series (t,x) of the copy number of species in a simulation
+        this function returns observation of the time series for species in x_mask
+        at time t_mask. 
+
+        x_mask should be an array for the name of chemical species
+
+        t_mask should be an increase sequence of time that is in the range of t.
+
+        noise should be a random number generator, such as noise = lambda : np.random.uniform() 
+        In case of None, there is no noise. 
+        '''
+
+        i = 0
+        rounded_down_t = []
+
+        assert(t[0] <= t_mask[0] and t[-1] >= t_mask[-1])
+
+        for tt in t_mask:
+            while t[i] <= tt and i < len(t):
+                i += 1
+            rounded_down_t.append(i-1)
+
+        x = x[:,[self.chemical2index(i) for i in x_mask]]
+
+
+
+
+
 
 
 class ChemicalReactionNetwork(ReactionNetwork):
