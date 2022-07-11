@@ -14,4 +14,4 @@ dependencies:
   - openssl
   - tqdm
   - corner
-# prefix: /opt/homebrew/Caskroom/miniforge/base/envs/mcmc
+  - tabulate
