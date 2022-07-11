@@ -90,6 +90,10 @@ class ReactionNetwork:
             t.append(t[-1] + dt)
             r.append(dr)
 
+        x = np.array(x)
+        t = np.array(t)
+        r = np.array(r)
+
         return (x, r, t)
 
     def tau_leaping_one_step(self, X, tau):
@@ -108,7 +112,7 @@ class ReactionNetwork:
         t = np.arange(0, T, tau)
         r = []
 
-        for tt in t:
+        for tt in t[1:]:
             dX, dr = self.tau_leaping_one_step(x[-1], tau)
             x.append(dX + x[-1])
             r.append(dr)
@@ -200,12 +204,12 @@ class Repressilator(ReactionNetwork):
             ({'M1':1},      {'M1':1,'P1':1}), # protein translation
             ({'M2':1},      {'M2':1,'P2':1}),
             ({'M3':1},      {'M3':1,'P3':1}),
-            ({'P1':0},      {}), # protein degradation
-            ({'P2':0},      {}),
-            ({'P3':0},      {}),
-            ({'M1':0},      {}), # mRNA degradation
-            ({'M2':0},      {}),
-            ({'M3':0},      {}),
+            ({'P1':1},      {}), # protein degradation
+            ({'P2':1},      {}),
+            ({'P3':1},      {}),
+            ({'M1':1},      {}), # mRNA degradation
+            ({'M2':1},      {}),
+            ({'M3':1},      {}),
         ]
         super().__init__(reactions, species, None, model_parameter)
         
@@ -228,13 +232,13 @@ class Repressilator(ReactionNetwork):
         ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
         
         # calculating the protein translation propensity
-        ret[3:6] = beta
+        ret[3:6] = beta*X[:3]
         
         # calculating the protein degradation propensity 
-        ret[6:9] = beta
+        ret[6:9] = beta*X[3:]
         
         # calculating the mRNA degradation 
-        ret[9:]  = gamma
+        ret[9:]  = gamma*X[:3]
         
         return ret
         
