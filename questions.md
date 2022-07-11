@@ -1,15 +1,25 @@
-# general things
+# top of my todos
 
+- [ ] implementing the multi-level tau-leaping simulations, ABC framework for doing inference, and then the 
+- [ ] think about non-ABC way of doing the estimation. 
 - [ ] observation: transform a time series of observations into observation at fixed time plus a noise. 
-- [ ] ode formulation. 
+
+
+# other todos 
+
+- [ ] ode formulation for simulations with large copy number, need to figure out perhaps by solving the PDE with a Runge-Kutta or backward-euler etc.  
 
 # July 9th
 
+So far I have understood the coupling process for tau-leaping process. Might need to implement it later. 
+
+It still bugs me on how to change t
+
 ## todo 
-- [ ] understand coupling by reading the "Complexity ..." or Giles papers.
-- [ ] think about non-ABC way of doing the estimation. 
+- [x] understand coupling by reading the "Complexity ..." or Giles papers.
+   - [x] mfml w 21 46 48 50
+- [x] Wasserstein, coupling metrics. does not seem to be so practical in computation. 
 - [ ] test the idea that I have today for direct sampling/fitting. this needs me to understand the coupling process better
-- [ ] Wasserstein, coupling metrics
 - [ ] nuissance variable. 
 
 ## Brownian bridge and inverse problem from the tau-leaping and coupling perspectives. 

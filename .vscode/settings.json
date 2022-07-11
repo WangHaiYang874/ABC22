@@ -2,5 +2,6 @@
     "jupyter.jupyterServerType": "local",
     "notebook.cellToolbarVisibility": "hover",
     "notebook.editorOptionsCustomizations": {
-    }
+    },
+    "python.formatting.provider": "autopep8"
 }
