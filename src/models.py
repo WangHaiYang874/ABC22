@@ -6,14 +6,7 @@ from scipy.stats import expon
 class ReactionNetwork:
     '''
     This models the stochastic network of chemical reactions, 
-
-    # the parameters
-    - number of species = N
-    - number of reactions = M
-    - reactions stochio :has: shape(M,2,N)
-    - kinetic rates :has: shape(M)
-
-    # usage:
+    
     TODO document later. 
     '''
 
@@ -146,7 +139,7 @@ class ReactionNetwork:
                 i += 1
             rounded_down_t.append(i-1)
 
-        x = x[:,[self.chemical2index(i) for i in x_mask]]
+        x = x[rounded_down_t,[self.chemical2index(i) for i in x_mask]]
 
 
 
