@@ -99,6 +99,28 @@ class ReactionNetwork:
 
         return dX, dr
 
+    def tau_leaping_one_step_coupled(self,x,tau,n=2):
+        '''TODO implement the case when n>2'''
+        if n != 2:
+            print('unimplemented')
+            assert(0)
+            
+        tau1 = tau
+        tau2 = n*tau
+        initial_propensity = self.propensity(x)
+        propensity1 = initial_propensity
+        propensity2 = initial_propensity
+
+        Y1 = np.random.po
+        
+
+
+        pass
+
+    def tau_leaping_coupled(self,x,tau,n):
+        pass
+
+
     def tau_leaping(self, X, tau, T):
 
         x = [X]
