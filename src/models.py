@@ -232,7 +232,7 @@ class ChemicalReactionNetwork(ReactionNetwork):
             the parameters for the propensity function
         '''
 
-        super.__init__(self,
+        super().__init__(self,
                        reactions,
                        species,
                        propensity=None,
