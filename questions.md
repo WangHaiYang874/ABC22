@@ -1,13 +1,57 @@
 # top of my todos
 
 - [ ] implementing the multi-level tau-leaping simulations, ABC framework for doing inference, and then the 
-- [ ] think about non-ABC way of doing the estimation. 
 - [ ] observation: transform a time series of observations into observation at fixed time plus a noise. 
+
+- [x] coupling prove on the CLT. failed attempt ❌. 
+- [ ] finish coupling of tau-leaping to gilespie. 
+- [ ] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems. bridge move. 
 
 
 # other todos 
 
 - [ ] ode formulation for simulations with large copy number, need to figure out perhaps by solving the PDE with a Runge-Kutta or backward-euler etc.  
+- [ ] test the idea that I have today for direct sampling/fitting. This should work for a general SDE model. The idea is to discretize a SDE, generate Brownian motions on the discretization points. Plug the Brownian motions on these points. Now I have eliminated the stochasicty of the equation. I can just solve for the parameters of the equation. see [here](#parameter-inference-for-sde).
+
+
+# done
+- [x] think about non-ABC way of doing the estimation. see note 7-18
+- [x] understand coupling by reading the "Complexity ..." or Giles papers.
+   - [x] mfml w 21 46 48 50
+- [x] Wasserstein, coupling metrics. does not seem to be so practical in computation except for one-dimension. 
+- [x] nuissance variable. 
+
+
+# July 17th, Non-ABC
+the idea of the new MCMC algorithm on chemical reaction networks has a much larger state space, that we are going to project the state space into the values we need. 
+
+Let's try to consider the following chemical reaction network with mass action kinetic and parameters $k_i$
+
+$$
+A \xLeftrightarrow[k_2]{k_1} B \xLeftrightarrow[k_4]{k_3} C
+$$
+
+Suppose the observables are $X_A(t)$ and we want to infer $k_i$. The state space of the MCMC algorithm is going to be the full chain of processes, i.e. 
+
+- $t_i$ for each time a reaction happening
+- the data $X_A(t_i), X_B(t_i), X_C(t_i)$
+
+It is unclear how to make a move in this MCMC chain, but pretend we know how. After running the MCMC chain for a real long time, we are theoretically guaranteed to have a asymptotic bias-free data. Because with this state space we can have the exact likelihood function computed. 
+
+Notice then, that for any steps to make in the MCMC chain, we need to make sure that the data $X_A(t_i)$ is consistent with our observation. This is the tricky part of this implementation. We need to have sort of a exponential bridge, in analogy to brownian bridge, to interpolate the stochastic processes. This needs to be thought through. 
+
+Professor Goodman proposed the MCMC moves to be one of the following
+1. change the $k_i$, keep the reaction time fixed. 
+2. change the time, keep the $k_i$ fixed. 
+
+#### Ask the following question for the new algorithm 
+
+- what problems are our algo practical to? 
+- compare to what other methods. ABC? 
+- just try some vanilla problems. 
+
+
+
 
 # July 9th
 
@@ -15,14 +59,9 @@ So far I have understood the coupling process for tau-leaping process. Might nee
 
 It still bugs me on how to change t
 
-## todo 
-- [x] understand coupling by reading the "Complexity ..." or Giles papers.
-   - [x] mfml w 21 46 48 50
-- [x] Wasserstein, coupling metrics. does not seem to be so practical in computation. 
-- [ ] test the idea that I have today for direct sampling/fitting. this needs me to understand the coupling process better
-- [ ] nuissance variable. 
 
-## Brownian bridge and inverse problem from the tau-leaping and coupling perspectives. 
+
+## Parameter inference for SDE
 
 >First of all build the random variable that might be possibly taken along the path of simulation on the finest levels. 
 > 
