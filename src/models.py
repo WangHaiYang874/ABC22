@@ -202,7 +202,7 @@ class ReactionNetwork:
                 i += 1
             rounded_down_t.append(i-1)
 
-        x = x[rounded_down_t, [self.chemical2index(i) for i in x_mask]]
+        x = x[rounded_down_t, [self.chemical2index[i] for i in x_mask]]
 
 
 class ChemicalReactionNetwork(ReactionNetwork):
