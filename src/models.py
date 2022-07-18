@@ -113,16 +113,16 @@ class ReactionNetwork:
 
         common_propensity_tau = np.min(
             np.array([propensity_tau, propensity_0_]), axis=0)
-        
+
         Y3 = np.random.poisson(common_propensity_tau*tau1)
         Y4 = np.random.poisson((propensity_tau - common_propensity_tau)*tau1)
         Y6 = np.random.poisson((propensity_0_ - common_propensity_tau)*tau1)
 
-        x_2tau = x_tau + ((Y3+Y4)[:, np.newaxis] \
-            *self.r_diff).sum(axis=0)
+        x_2tau = x_tau + ((Y3+Y4)[:, np.newaxis]
+                          * self.r_diff).sum(axis=0)
 
-        x_2tau_ = x_ + ((Y1 + Y5 + Y3 + Y6)[:,np.newaxis] \
-            *self.r_diff).sum(axis=0)
+        x_2tau_ = x_ + ((Y1 + Y5 + Y3 + Y6)[:, np.newaxis]
+                        * self.r_diff).sum(axis=0)
 
         return (x_tau, x_2tau, x_2tau_)
 
@@ -144,8 +144,6 @@ class ReactionNetwork:
             x1.append(x1_2tau)
             x2.append(x2_2tau)
 
-        
-        
         x1 = np.array(x1)
         x2 = np.array(x2)
         t1 = np.array(t1[:len(x1)])
@@ -190,6 +188,8 @@ class ReactionNetwork:
 
         noise should be a random number generator, such as noise = lambda : np.random.uniform() 
         In case of None, there is no noise. 
+        
+        TODO: implement noise. And Also Reaction mask. 
         '''
 
         i = 0

@@ -1,10 +1,4 @@
 # top of my todos
-
-- [ ] implementing the multi-level tau-leaping simulations, ABC framework for doing inference, and then the 
-- [ ] observation: transform a time series of observations into observation at fixed time plus a noise. 
-
-- [x] coupling prove on the CLT. failed attempt ❌. 
-- [ ] finish coupling of tau-leaping to gilespie. 
 - [ ] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems. bridge move. 
 
 
@@ -12,9 +6,14 @@
 
 - [ ] ode formulation for simulations with large copy number, need to figure out perhaps by solving the PDE with a Runge-Kutta or backward-euler etc.  
 - [ ] test the idea that I have today for direct sampling/fitting. This should work for a general SDE model. The idea is to discretize a SDE, generate Brownian motions on the discretization points. Plug the Brownian motions on these points. Now I have eliminated the stochasicty of the equation. I can just solve for the parameters of the equation. see [here](#parameter-inference-for-sde).
+- [ ] have a better implementation of the coupling for both gilespie and tau-leaping. I now have a rough working mvp. It can be better if I have the time. 
+- [ ] have a better `get_observation` method in `models.py`. By now it is still somewhat imcomplete. 
 
 
 # done
+- [x] observation: transform a time series of observations into observation at fixed time plus a noise. 
+- [x] ❌ coupling prove on the CLT. failed attempt. 
+- [x] implementing the multi-level tau-leaping simulations, ABC framework for doing inference. see the notebook `tau leaping couple.ipynb`. 
 - [x] think about non-ABC way of doing the estimation. see note 7-18
 - [x] understand coupling by reading the "Complexity ..." or Giles papers.
    - [x] mfml w 21 46 48 50
