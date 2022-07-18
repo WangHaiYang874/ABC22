@@ -231,12 +231,7 @@ class ChemicalReactionNetwork(ReactionNetwork):
         - kinetic_rates: 
             the parameters for the propensity function
         '''
-
-        super().__init__(self,
-                       reactions,
-                       species,
-                       propensity=None,
-                       model_parameter=kinetic_rates)
+        super().__init__(reactions, species, None, kinetic_rates)
 
     def _product(self, a, b):
         if b == 0:
