@@ -176,7 +176,7 @@ class ReactionNetwork:
 
         return (x, r, t)
 
-    def get_observation(self, t, x, x_mask, t_mask, noise=None):
+    def get_observation(self, t, x, x_mask, t_mask=None, noise=None):
         '''
         Given the time series (t,x) of the copy number of species in a simulation
         this function returns observation of the time series for species in x_mask
@@ -195,14 +195,16 @@ class ReactionNetwork:
         i = 0
         rounded_down_t = []
 
-        assert(t[0] <= t_mask[0] and t[-1] >= t_mask[-1])
+        if t_mask is None:
+            return x[:,[self.chemical2index[i] for i in x_mask]]
 
+        assert(t[0] <= t_mask[0] and t[-1] >= t_mask[-1])
         for tt in t_mask:
             while t[i] <= tt and i < len(t):
                 i += 1
             rounded_down_t.append(i-1)
 
-        x = x[rounded_down_t, [self.chemical2index[i] for i in x_mask]]
+        return x[rounded_down_t, [self.chemical2index[i] for i in x_mask]]
 
 
 class ChemicalReactionNetwork(ReactionNetwork):
@@ -254,7 +256,7 @@ class ChemicalReactionNetwork(ReactionNetwork):
 
         dt = np.diff(t)
 
-        A = np.array([self.propensity_(xx, kinetic_rates) for xx in x])
+        A = np.array([self._propensity(kinetic_rates,xx) for xx in x])
         a = np.sum(A, axis=-1)
 
         log_pdf_t = np.sum(expon.logpdf(dt, scale=1 / a[:-1]))

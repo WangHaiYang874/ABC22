@@ -41,7 +41,9 @@ Notice then, that for any steps to make in the MCMC chain, we need to make sure 
 
 Professor Goodman proposed the MCMC moves to be one of the following
 1. change the $k_i$, keep the reaction time fixed. 
-2. change the time, keep the $k_i$ fixed. 
+2. change the time, keep the $k_i$ fixed.  change the time contains the following moves. 
+   1. moving the time
+   2. adding extra reactions, and therefore extra time $t_i$, with the constraint that observation is still correct. 
 
 #### Ask the following question for the new algorithm 
 
