@@ -6,7 +6,7 @@ from scipy.stats import expon
 class ReactionNetwork:
     '''
     This models the stochastic network of chemical reactions, 
-    
+
     TODO document later. 
     '''
 
@@ -47,10 +47,10 @@ class ReactionNetwork:
         for k, v in d.items():
             ret[self.chemical2index[k]] = v
         return ret
-    
-    def _propensity(self,model_parameter,X):
-        return self._propensity_function(self,model_parameter,X)
-    
+
+    def _propensity(self, model_parameter, X):
+        return self._propensity_function(self, model_parameter, X)
+
     def propensity(self, X):
         return self._propensity(self.model_parameter, X)
 
@@ -89,6 +89,69 @@ class ReactionNetwork:
 
         return (x, r, t)
 
+    def tau_leaping_one_step_coupled(self, x, x_, tau, n=2):
+        '''
+        TODO implement the case when n>2
+        TODO devise appropriate return values. 
+        '''
+        if n != 2:
+            print('I have not implemented for n!=2 yet')
+            assert(0)
+
+        tau1 = tau
+        tau2 = n*tau
+        propensity_0 = self.propensity(x)
+        propensity_0_ = self.propensity(x_)
+        common_propensity_0 = np.min(
+            np.array([propensity_0, propensity_0_]), axis=0)
+        Y1 = np.random.poisson(common_propensity_0*tau1)
+        Y2 = np.random.poisson((propensity_0 - common_propensity_0)*tau1)
+        Y5 = np.random.poisson((propensity_0_ - common_propensity_0)*tau1)
+        x_tau = x + ((Y1+Y2)[:, np.newaxis]*self.r_diff).sum(axis=0)
+
+        propensity_tau = self.propensity(x_tau)
+
+        common_propensity_tau = np.min(
+            np.array([propensity_tau, propensity_0_]), axis=0)
+        
+        Y3 = np.random.poisson(common_propensity_tau*tau1)
+        Y4 = np.random.poisson((propensity_tau - common_propensity_tau)*tau1)
+        Y6 = np.random.poisson((propensity_0_ - common_propensity_tau)*tau1)
+
+        x_2tau = x_tau + ((Y3+Y4)[:, np.newaxis] \
+            *self.r_diff).sum(axis=0)
+
+        x_2tau_ = x_ + ((Y1 + Y5 + Y3 + Y6)[:,np.newaxis] \
+            *self.r_diff).sum(axis=0)
+
+        return (x_tau, x_2tau, x_2tau_)
+
+    def tau_leaping_coupled(self, X, tau, T, n=2):
+        if n != 2:
+            print('I have not implemented for n!=2 yet')
+            assert(0)
+
+        tau2 = tau*n
+        x1 = [X]  # the more exact sequence
+        x2 = [X]  # the less exact sequence
+        t1 = np.arange(0, T, tau)
+        t2 = np.arange(0, T, tau2)
+
+        for t in t2[1:]:
+            x1_tau, x1_2tau, x2_2tau = self.tau_leaping_one_step_coupled(
+                x1[-1], x2[-1], tau, n)
+            x1.append(x1_tau)
+            x1.append(x1_2tau)
+            x2.append(x2_2tau)
+
+        
+        
+        x1 = np.array(x1)
+        x2 = np.array(x2)
+        t1 = np.array(t1[:len(x1)])
+        t2 = np.array(t2)
+        return x1, t1, x2, t2
+
     def tau_leaping_one_step(self, X, tau):
 
         A = self.propensity(X)
@@ -98,28 +161,6 @@ class ReactionNetwork:
         dX = (dr[:, np.newaxis] * self.r_diff).sum(axis=0)
 
         return dX, dr
-
-    def tau_leaping_one_step_coupled(self,x,tau,n=2):
-        '''TODO implement the case when n>2'''
-        if n != 2:
-            print('unimplemented')
-            assert(0)
-            
-        tau1 = tau
-        tau2 = n*tau
-        initial_propensity = self.propensity(x)
-        propensity1 = initial_propensity
-        propensity2 = initial_propensity
-
-        Y1 = np.random.po
-        
-
-
-        pass
-
-    def tau_leaping_coupled(self,x,tau,n):
-        pass
-
 
     def tau_leaping(self, X, tau, T):
 
@@ -137,7 +178,7 @@ class ReactionNetwork:
 
         return (x, r, t)
 
-    def get_observation(self,t,x,x_mask,t_mask,noise=None):
+    def get_observation(self, t, x, x_mask, t_mask, noise=None):
         '''
         Given the time series (t,x) of the copy number of species in a simulation
         this function returns observation of the time series for species in x_mask
@@ -161,12 +202,7 @@ class ReactionNetwork:
                 i += 1
             rounded_down_t.append(i-1)
 
-        x = x[rounded_down_t,[self.chemical2index(i) for i in x_mask]]
-
-
-
-
-
+        x = x[rounded_down_t, [self.chemical2index(i) for i in x_mask]]
 
 
 class ChemicalReactionNetwork(ReactionNetwork):
@@ -233,6 +269,7 @@ class ChemicalReactionNetwork(ReactionNetwork):
 
         return log_pdf_t + log_pdf_r + log_pdf_final
 
+
 class Repressilator(ReactionNetwork):
     '''
     This is an implementation for the repressilator network in biological system. 
@@ -244,21 +281,21 @@ class Repressilator(ReactionNetwork):
 
         species = 'M1 M2 M3 P1 P2 P3'.split()
         reactions = [
-            ({},            {'M1':1}), # mRNA transcription
-            ({},            {'M2':1}), 
-            ({},            {'M3':1}),
-            ({'M1':1},      {'M1':1,'P1':1}), # protein translation
-            ({'M2':1},      {'M2':1,'P2':1}),
-            ({'M3':1},      {'M3':1,'P3':1}),
-            ({'P1':1},      {}), # protein degradation
-            ({'P2':1},      {}),
-            ({'P3':1},      {}),
-            ({'M1':1},      {}), # mRNA degradation
-            ({'M2':1},      {}),
-            ({'M3':1},      {}),
+            ({},            {'M1': 1}),  # mRNA transcription
+            ({},            {'M2': 1}),
+            ({},            {'M3': 1}),
+            ({'M1': 1},      {'M1': 1, 'P1': 1}),  # protein translation
+            ({'M2': 1},      {'M2': 1, 'P2': 1}),
+            ({'M3': 1},      {'M3': 1, 'P3': 1}),
+            ({'P1': 1},      {}),  # protein degradation
+            ({'P2': 1},      {}),
+            ({'P3': 1},      {}),
+            ({'M1': 1},      {}),  # mRNA degradation
+            ({'M2': 1},      {}),
+            ({'M3': 1},      {}),
         ]
         super().__init__(reactions, species, None, model_parameter)
-        
+
     def _propensity(self, theta, X):
         '''
         theta = (
@@ -271,26 +308,21 @@ class Repressilator(ReactionNetwork):
         )
         '''
         alpha0, alpha, n, K, beta, gamma = theta
-        
-        
+
         ret = np.zeros(self.number_of_reactions)
-        # calculating the mRNA transciption propensity 
-        ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:],1)**n)
-        
+        # calculating the mRNA transciption propensity
+        ret[:3] = alpha0 + alpha*K**n / (K**n + np.roll(X[3:], 1)**n)
+
         # calculating the protein translation propensity
         ret[3:6] = beta*X[:3]
-        
-        # calculating the protein degradation propensity 
-        ret[6:9] = beta*X[3:]
-        
-        # calculating the mRNA degradation 
-        ret[9:]  = gamma*X[:3]
-        
-        return ret
-        
-    def propensity(self, X):
-        return self._propensity(self.model_parameter,X)
-    
-    
 
-        
+        # calculating the protein degradation propensity
+        ret[6:9] = beta*X[3:]
+
+        # calculating the mRNA degradation
+        ret[9:] = gamma*X[:3]
+
+        return ret
+
+    def propensity(self, X):
+        return self._propensity(self.model_parameter, X)
