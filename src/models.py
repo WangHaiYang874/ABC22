@@ -29,8 +29,8 @@ class ReactionNetwork:
 
         self.number_of_reactions = len(reactions)
 
-        self.r_input = np.array([self._dict2vec(d) for d, _ in reactions])
-        self.r_output = np.array([self._dict2vec(d) for _, d in reactions])
+        self.r_input = np.array([self._dict2vec(d) for d, _ in reactions], dtype=int)
+        self.r_output = np.array([self._dict2vec(d) for _, d in reactions], dtype=int)
         self.r_diff = self.r_output - self.r_input
 
         self._propensity_function = propensity
@@ -89,66 +89,79 @@ class ReactionNetwork:
 
         return (x, r, t)
 
-    def tau_leaping_one_step_coupled(self, x, x_, tau, n=2):
+    def _one_step_tau_leaping_coupled_update_trigger(self, n, i):
+        l = 1
+        while i % n**l == 0:
+            l += 1
+        return l
+
+    def tau_leaping_one_step_coupled(self, Xs, tau,n=2):
+        
         '''
         TODO implement the case when n>2
         TODO devise appropriate return values. 
         '''
-        if n != 2:
-            print('I have not implemented for n!=2 yet')
-            assert(0)
+        # if n != 2 or levels != 2:
+        #     print('not implemented for n!=2 yet')
+        #     assert(0)
 
-        tau1 = tau
-        tau2 = n*tau
-        propensity_0 = self.propensity(x)
-        propensity_0_ = self.propensity(x_)
-        common_propensity_0 = np.min(
-            np.array([propensity_0, propensity_0_]), axis=0)
-        Y1 = np.random.poisson(common_propensity_0*tau1)
-        Y2 = np.random.poisson((propensity_0 - common_propensity_0)*tau1)
-        Y5 = np.random.poisson((propensity_0_ - common_propensity_0)*tau1)
-        x_tau = x + ((Y1+Y2)[:, np.newaxis]*self.r_diff).sum(axis=0)
+        
+        levels = len(Xs)
 
-        propensity_tau = self.propensity(x_tau)
+        N = n**(levels-1)
+        propensities = np.array([self.propensity(x_) for x_ in Xs])
+        Xs = [[x] for x in Xs]
+        # Ts = [[0] for i in range(levels)]
+        
+        coupled_reactions = np.zeros((levels,self.number_of_reactions), dtype=int)
+        not_coupled_reactions = np.zeros((levels,self.number_of_reactions), dtype=int)
 
-        common_propensity_tau = np.min(
-            np.array([propensity_tau, propensity_0_]), axis=0)
+        for i in range(1,N+1):
+            '''
+            this loops over each time step that an event can occur and mutual 
+            random variable should be generated. 
 
-        Y3 = np.random.poisson(common_propensity_tau*tau1)
-        Y4 = np.random.poisson((propensity_tau - common_propensity_tau)*tau1)
-        Y6 = np.random.poisson((propensity_0_ - common_propensity_tau)*tau1)
+            there are a few key thing to keep in mind. 
+            '''
+            coupled_propensities = np.min(propensities, axis=0)
+            not_coupled_propensities = propensities - coupled_propensities[np.newaxis,:]
+        
+            coupled_reactions = coupled_reactions + np.random.poisson(coupled_propensities*tau)[np.newaxis,:]
+            not_coupled_reactions = not_coupled_reactions + np.random.poisson(not_coupled_propensities*tau)
+            
+            for j in range(self._one_step_tau_leaping_coupled_update_trigger(n,i)):
 
-        x_2tau = x_tau + ((Y3+Y4)[:, np.newaxis]
-                          * self.r_diff).sum(axis=0)
+                Xs[j].append(Xs[j][-1] + ((not_coupled_reactions[j] + coupled_reactions[j])[:, np.newaxis]*self.r_diff).sum(axis=0))
+                # Ts[j].append(Ts[j][-1] + taus[j])
+                not_coupled_reactions[j] = 0
+                coupled_reactions[j] = 0
+                propensities[j] = self.propensity(Xs[j][-1])
+        
+        Xs = [x[1:] for x in Xs]
+        Ts = [np.arange(1,len(Xs[j])+1)*tau*n**j for j in range(levels)]
 
-        x_2tau_ = x_ + ((Y1 + Y5 + Y3 + Y6)[:, np.newaxis]
-                        * self.r_diff).sum(axis=0)
+        return Xs, Ts
 
-        return (x_tau, x_2tau, x_2tau_)
+    def tau_leaping_coupled(self, X, tau, T, n=2, levels=2):
 
-    def tau_leaping_coupled(self, X, tau, T, n=2):
-        if n != 2:
-            print('I have not implemented for n!=2 yet')
-            assert(0)
+        Xs = [X for i in range(levels)]
+        Xs_ = [[X] for i in range(levels)]
+        Ts_ = [[0] for i in range(levels)]
 
-        tau2 = tau*n
-        x1 = [X]  # the more exact sequence
-        x2 = [X]  # the less exact sequence
-        t1 = np.arange(0, T, tau)
-        t2 = np.arange(0, T, tau2)
+        t = 0
+        while t < T:
+            newXs_, newTs_ = self.tau_leaping_one_step_coupled(Xs, tau, n)
+            Xs_ = [Xs_[j]+newXs_[j] for j in range(levels)]
+            newTs_ = [tt+t for tt in newTs_]
+            Ts_ = [np.concatenate((Ts_[j],newTs_[j])) for j in range(levels)]
+            # I could replace this with a single concatenation 
+            # it might be a bit faster but just take more memory. 
+            t += tau*n**(levels-1)
+            Xs = [Xs_[j][-1] for j in range(levels)]
+        
+        Xs_ = [np.array(x) for x in Xs_]
 
-        for t in t2[1:]:
-            x1_tau, x1_2tau, x2_2tau = self.tau_leaping_one_step_coupled(
-                x1[-1], x2[-1], tau, n)
-            x1.append(x1_tau)
-            x1.append(x1_2tau)
-            x2.append(x2_2tau)
-
-        x1 = np.array(x1)
-        x2 = np.array(x2)
-        t1 = np.array(t1[:len(x1)])
-        t2 = np.array(t2)
-        return x1, t1, x2, t2
+        return Xs_, Ts_
 
     def tau_leaping_one_step(self, X, tau):
 
