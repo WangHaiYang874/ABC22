@@ -1,15 +1,16 @@
-this is not a seriour readme file. it is rather the place that I keep my notes and todos for this project. 
+this is not a seriour readme file. it is rather the place that I keep my notes and todos for this project.
 
 # top of my todos
 
 - [ ] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems. bridge move.
 - [ ] read Overview of Approximate Bayesian Computation.
 - [ ] think about how to use ml/mf for parameter estimation.
+- [ ] understand how to use numba for speed up.
 
 # other todos
 
 - [ ] ode formulation for simulations with large copy number, need to figure out perhaps by solving the PDE with a Runge-Kutta or backward-euler etc.
-- [ ] test the idea that I have today for direct sampling/fitting. This should work for a general SDE model. The idea is to discretize a SDE, generate Brownian motions on the discretization points. Plug the Brownian motions on these points. Now I have eliminated the stochasicty of the equation. I can just solve for the parameters of the equation. see [here](#parameter-inference-for-sde). 
+- [ ] test the idea that I have today for direct sampling/fitting. This should work for a general SDE model. The idea is to discretize a SDE, generate Brownian motions on the discretization points. Plug the Brownian motions on these points. Now I have eliminated the stochasicty of the equation. I can just solve for the parameters of the equation. see [here](#parameter-inference-for-sde).
 - [ ] have a better `get_observation` method in `models.py`. By now it is still somewhat imcomplete.
   - [ ] time mask,
   - [ ] reaction mask,
@@ -28,7 +29,7 @@ this is not a seriour readme file. it is rather the place that I keep my notes a
 - [X] Wasserstein, coupling metrics. does not seem to be so practical in computation except for one-dimension.
 - [X] nuissance variable.
 - [X] have a better implementation of the coupling for levels of tau-leaping. I now have a rough working mvp. It can be better if I have the time.
-- [X] send professor Goodman some notes on coupling. 
+- [X] send professor Goodman some notes on coupling.
 
 # July 17th, Non-ABC
 
@@ -92,35 +93,33 @@ $$
 d(\theta',\theta^*) < d(\theta,\theta^*)
 $$
 
+This idea might evetually lead to some gradient descent way of giving a proposal function, for example to let $m(\theta') = m(\theta + d\theta) \approx m(\theta) + m(d\theta)$ become away of proposing. the formular is incorrect, however, comparing form the standard calculus formular of of $m(\theta') = m(\theta) + m'(\theta) d\theta$.
 
-This idea might evetually lead to some gradient descent way of giving a proposal function, for example to let $m(\theta') = m(\theta + d\theta) \approx m(\theta) + m(d\theta)$ become away of proposing. the formular is incorrect, however, comparing form the standard calculus formular of of $m(\theta') = m(\theta) + m'(\theta) d\theta$. 
+Why might this work? At the point $\theta$, the function $m'(\theta)d\theta$ and $m(d\theta)$ might be proportional. This is certainly the case for polynomial functions.
 
-Why might this work? At the point $\theta$, the function $m'(\theta)d\theta$ and $m(d\theta)$ might be proportional. This is certainly the case for polynomial functions. 
+And if this one works, what's so great is that $m(d\theta)$ can be computed in a mere preconditioning process very efficiently.
 
-And if this one works, what's so great is that $m(d\theta)$ can be computed in a mere preconditioning process very efficiently. 
-
-Might this method work? I will check it out another day. I cannot come up with good thoughts now and better do my brain-less homework. 
-
+Might this method work? I will check it out another day. I cannot come up with good thoughts now and better do my brain-less homework.
 
 # June 27th
 
 1. where is the canonical place to put my texts. Maybe I should just have a function that prints out the text after each plot. Or I can input the texts into the model class...
    1. more information in plots (MCMC run length, among others).
-2. do one of warne's experiement. this requires a frame work of **rejections** and everything. 
+2. do one of warne's experiement. this requires a frame work of **rejections** and everything.
    1. have more than one kind of atom (not just H and H2) and measure the copy number of just some of the species.
-3. affine inv with 2 pts moving at the same time. 
+3. affine inv with 2 pts moving at the same time.
 
 ## optimization works
-1. I should clean up my codes in `BayesianModel.py` and `models.py`, there are a few terms that should be simplified. And `models.py` should be a sub-class of `BayesianModel.py`. 
+
+1. I should clean up my codes in `BayesianModel.py` and `models.py`, there are a few terms that should be simplified. And `models.py` should be a sub-class of `BayesianModel.py`.
 
 ## thoughts
 
-其实越是高维度的东西就越是容易anisotropic的. 这一点在mcmc中如何体现呢. 
-
+其实越是高维度的东西就越是容易anisotropic的. 这一点在mcmc中如何体现呢.
 
 # June 21st
 
-1. canonical way to find the mode of samples from continuous r.v. 
+1. canonical way to find the mode of samples from continuous r.v.
    the mpe
-2. affine inv with multiple points moving. 
+2. affine inv with multiple points moving.
 3. population mcmc and etc.
