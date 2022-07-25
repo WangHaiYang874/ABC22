@@ -272,6 +272,10 @@ class ChemicalReactionNetwork(ReactionNetwork):
         A = np.array([self._propensity(kinetic_rates,xx) for xx in x])
         a = np.sum(A, axis=-1)
 
+        '''this computation of likelihood here already 
+        hinted that there is some kinds of summary statistics.
+        '''
+
         log_pdf_t = np.sum(expon.logpdf(dt, scale=1 / a[:-1]))
         log_pdf_r = np.sum(np.log([rr[i] for rr, i in zip(A, r)])) - np.sum(
             np.log(a))
