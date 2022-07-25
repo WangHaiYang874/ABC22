@@ -2,6 +2,7 @@ this is not a seriour readme file. it is rather the place that I keep my notes a
 
 # top of my todos
 
+- [ ] debug the simple non-ABC model. there must be a bug somewhere... Also, I should merge the move k and move initial copy number.
 - [ ] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems.
 - [ ] think about bridge move.
 - [X] read Overview of Approximate Bayesian Computation.
