@@ -1,0 +1,80 @@
+Timer unit: 1e-06 s
+
+Total time: 84.0307 s
+File: /tmp/ipykernel_107613/608262054.py
+Function: mcmc at line 1
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     1                                           def mcmc(initial_state, n):
+     2                                           
+     3         1          5.0      5.0      0.0      samples = [initial_state]
+     4         1          0.0      0.0      0.0      if_accepted = []
+     5         1       1087.0   1087.0      0.0      log_likelihoods = [log_likelihood(initial_state)]
+     6                                           
+     7    100001     911058.0      9.1      1.1      for i in tqdm(range(n), desc='sampling state space'):
+     8                                                   
+     9    100000     431275.0      4.3      0.5          if np.random.uniform() < 0.5:
+    10     50096      73914.0      1.5      0.1              move = 1
+    11     50096   11469035.0    228.9     13.6              new_state, log_p = move_copy_number(samples[-1],n_steps=1)
+    12                                                   else:
+    13     49904      73568.0      1.5      0.1              move = 2
+    14     49904    2153973.0     43.2      2.6              new_state, log_p = move_k(samples[-1])
+    15                                                   
+    16    100000   67661802.0    676.6     80.5          curr_log_pst = log_likelihood(new_state)
+    17                                                       
+    18    100000     209061.0      2.1      0.2          log_acceptance = curr_log_pst + log_p - log_likelihoods[-1]
+    19    100000     548370.0      5.5      0.7          if log_acceptance >= 0 or np.log(np.random.uniform()) < log_acceptance:
+    20     63348     107717.0      1.7      0.1              samples.append(new_state)
+    21     63348      94677.0      1.5      0.1              log_likelihoods.append(curr_log_pst)
+    22     63348     104045.0      1.6      0.1              if_accepted.append(move)
+    23                                                   else:
+    24     36652      65214.0      1.8      0.1              samples.append(samples[-1])
+    25     36652      56965.0      1.6      0.1              log_likelihoods.append(log_likelihoods[-1])
+    26     36652      61327.0      1.7      0.1              if_accepted.append(0)
+    27         1       7584.0   7584.0      0.0      return samples, np.array(if_accepted), np.array(log_likelihoods)
+
+
+
+
+    Timer unit: 1e-06 s
+
+Total time: 67.0737 s
+File: /tmp/ipykernel_107613/848465609.py
+Function: log_likelihood at line 14
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    14                                           def log_likelihood(state):
+    15                                               
+    16    100001     186676.0      1.9      0.3      k,X = state
+    17    100001    2785974.0     27.9      4.2      r = get_r(X)
+    18    100001   64101027.0    641.0     95.6      return model.gilespie_exact_log_likelihood(k,X,r,t,T)
+    19                                               # should this thing be modified a bit? as it is conditioned on fixing b and fixing t. 
+    20                                               # No, it is still correct up to a constant. so it won't matter in MCMC.
+
+
+
+Total time: 66.5972 s
+File: /home/haiyang/proj/ABC22/./src/models.py
+Function: gilespie_exact_log_likelihood at line 268
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   268                                               def gilespie_exact_log_likelihood(self, kinetic_rates, x, r, t, T):
+   269                                           
+   270    100001     961142.0      9.6      1.4          dt = np.diff(t)
+   271                                           
+   272    100001   34469087.0    344.7     51.8          A = np.array([self._propensity(kinetic_rates,xx) for xx in x])
+   273    100001    1035581.0     10.4      1.6          a = np.sum(A, axis=-1)
+   274                                           
+   275    100001     168610.0      1.7      0.3          '''this computation of likelihood here already 
+   276                                                   hinted that there is some kinds of summary statistics.
+   277                                                   '''
+   278                                           
+   279    100001   12547791.0    125.5     18.8          log_pdf_t = np.sum(expon.logpdf(dt, scale=1 / a[:-1]))
+   280    200002    2321822.0     11.6      3.5          log_pdf_r = np.sum(np.log([rr[i] for rr, i in zip(A, r)])) - np.sum(
+   281    100001     234530.0      2.3      0.4              np.log(a))
+   282    100001   14652272.0    146.5     22.0          log_pdf_final = np.log(1 - expon.cdf(T - t[-1], scale=1 / (a[-1])))
+   283                                           
+   284    100001     206370.0      2.1      0.3          return log_pdf_t + log_pdf_r + log_pdf_final
