@@ -2,13 +2,10 @@ this is not a seriour readme file. it is rather the place that I keep my notes a
 
 # top of my todos
 
-- [ ] debug the simple non-ABC model. there must be a bug somewhere... Also, I should merge the move k and move initial copy number.
-- [ ] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems.
-- [ ] think about bridge move.
-- [X] read Overview of Approximate Bayesian Computation.
-  it's an interesting paper. in summary, using kernels, using summary statistics, what else?
-  in terms of summary statistics, I have an idea for the chemical problem. it could work if I have a full observation of a really long time. I do have to think about making summary stats work in the mcmc case. because they seem to be really useful.
+- [ ] using the idea from the abc paper to do some mcmc. Summary statistics for sure. 
 - [ ] think about how to use ml/mf for parameter estimation. the coupling is probably useful in the ABC setting utilizing the idea of multi-fidelity for computing the acceptance probablity. maybe there is a smart way of making it bias free.. this might need us introduce weights in the mcmc. we can't we introduce weights in MCMC algorithms? Surely one thing we could do is introduce an `dead` node in the markov chain, and we can start the MCMC with some nodes, they can branch out, to get more nodes and more samples with weights. and there will be probability of going to the dead nodes. If all nodes goes to the dead nodes, then we restart. And also, even if a node has small weights, if it makes the `right` moves, it weight can grow larger. This is not completely non-sense I guess. This is the idea needs more thinking and math going on.
+- [ ] generating think about how to fill the partially observed stuff. 
+- [ ] also think about why simulations goes to the multi-modal. what effects does it have for extreme paths, the corresponding kinetic rates, and then the eventual likelihood. 
 
 # other todos
 
@@ -23,7 +20,11 @@ this is not a seriour readme file. it is rather the place that I keep my notes a
 - [ ] understand how to use numba for speed up.
 
 # done
-
+- [X] debug the simple non-ABC model. there must be a bug somewhere...
+- [X] I should merge the move_reaction and move initial copy number.
+- [X] non-ABC problem. simulating the unobserved times. ABC refers to the ABC chemical problems.
+- [X] think about bridge move.
+- [X] read Overview of Approximate Bayesian Computation.
 - [X] observation: transform a time series of observations into observation at fixed time plus a noise.
 - [X] ❌ coupling prove on the CLT. failed attempt.
 - [X] implementing the multi-level tau-leaping simulations, ABC framework for doing inference. see the notebook `tau leaping couple.ipynb`.
